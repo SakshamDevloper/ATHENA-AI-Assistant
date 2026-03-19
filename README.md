@@ -134,7 +134,7 @@ athena_globe.py
 | Saksham Sethi | 2403031087123 |
 | Nisarg Patel  | 2403031087153 |
 
-**Guided by:** Prof. Himani Parmar, Assistant Professor (IT Dept), Parul University
+**Guided by:** Prof. Himani Parmar, Ravi, Assistant Professor (IT Dept), Parul University
 
 ---
 
