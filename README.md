@@ -185,4 +185,10 @@ pyperclip
 
 ---
 
+## Team Mates
+
+- **Mahimal**
+- **Nisarg**
+---
+
 *Built with ❤️ using Python, Groq LLaMA 3.3, Microsoft Azure Neural TTS, Open-Meteo API*
