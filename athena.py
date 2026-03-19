@@ -47,9 +47,6 @@ AUTH_PATH   = Path.home() / ".athena_auth.json"
 MAX_MEMORY  = 40
 OS          = platform.system()
 
-# ════════════════════════════════════════════════════════════════
-#  MEMORY & AUTH
-# ════════════════════════════════════════════════════════════════
 def load_memory():
     try:
         return json.loads(MEMORY_PATH.read_text()) if MEMORY_PATH.exists() else []
@@ -71,9 +68,6 @@ def save_auth(name):
         "registered": datetime.datetime.now().isoformat()
     }))
 
-# ════════════════════════════════════════════════════════════════
-#  WEATHER — Open-Meteo (100% FREE, no API key needed)
-# ════════════════════════════════════════════════════════════════
 def get_weather(city):
     try:
         city_enc = urllib.parse.quote(city)
@@ -129,9 +123,6 @@ def get_weather(city):
     except Exception as e:
         return f"Could not fetch weather: {e}"
 
-# ════════════════════════════════════════════════════════════════
-#  APP / SYSTEM COMMANDS
-# ════════════════════════════════════════════════════════════════
 APP_ALIASES = {
     "chrome":        "Google Chrome" if OS == "Darwin" else "chrome",
     "google chrome": "Google Chrome" if OS == "Darwin" else "chrome",
@@ -254,8 +245,6 @@ def write_to_chrome(text, title="Document"):
     _last_document  = text
     _last_doc_title = title.replace(" ", "_").lower()
 
-    # Build a beautiful HTML page with the document
-    # JavaScript download button built in
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -359,7 +348,7 @@ function copyText() {{
 
     try:
         _doc_html_path.write_text(html, encoding="utf-8")
-        # Open in Chrome
+   
         chrome_paths = [
             r"C:\Program Files\Google\Chrome\Application\chrome.exe",
             r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
@@ -371,7 +360,7 @@ function copyText() {{
                 opened = True
                 break
         if not opened:
-            # fallback to default browser
+          
             import webbrowser
             webbrowser.open(str(_doc_html_path))
         return f"I have opened your {title} in the browser. You can edit it, then click the Download button to save it, or say download it."
@@ -401,9 +390,6 @@ def save_document(filename="athena_document"):
     except Exception as e:
         return f"Could not save: {e}"
 
-# ════════════════════════════════════════════════════════════════
-#  TTS
-# ════════════════════════════════════════════════════════════════
 _tts_proc  = None
 _speaking  = False
 
@@ -506,9 +492,6 @@ def speak_text(text):
         print(f"[TTS error] {e}")
     _speaking = False
 
-# ════════════════════════════════════════════════════════════════
-#  SYSTEM PROMPT
-# ════════════════════════════════════════════════════════════════
 SYSTEM_PROMPT = """\
 You are Athena, a smart and helpful AI desktop voice assistant.
 Keep spoken answers to 2-4 sentences for simple questions.
@@ -538,9 +521,6 @@ Current user: {user_name}
 Current date/time: {now}
 """
 
-# ════════════════════════════════════════════════════════════════
-#  COMMAND DISPATCHER
-# ════════════════════════════════════════════════════════════════
 def dispatch_cmd(cmd):
     c = cmd.get("cmd", "")
     if c == "open_app":       return open_app(cmd.get("name", ""))
@@ -556,9 +536,6 @@ def dispatch_cmd(cmd):
     if c == "dismiss_alarm":   dismiss_alarm(); return "Alarm dismissed."
     return None
 
-# ════════════════════════════════════════════════════════════════
-#  LLM QUERY
-# ════════════════════════════════════════════════════════════════
 def build_system_prompt(user_name):
     now = datetime.datetime.now().strftime("%A %B %d %Y, %I:%M %p")
     return SYSTEM_PROMPT.format(user_name=user_name, now=now)
@@ -571,7 +548,6 @@ def query_llm(text, history, user_name="Sir"):
 
     reply = ""
 
-    # Try Groq first
     groq_key = os.getenv("GROQ_API_KEY", "")
     if GROQ_OK and groq_key:
         try:
@@ -586,7 +562,6 @@ def query_llm(text, history, user_name="Sir"):
         except Exception as e:
             print(f"[Groq error] {e}")
 
-    # Fallback to OpenAI
     if not reply:
         oai_key = os.getenv("OPENAI_API_KEY", "")
         if OPENAI_OK and oai_key:
@@ -605,7 +580,6 @@ def query_llm(text, history, user_name="Sir"):
     if not reply:
         return "No LLM API key found. Add GROQ_API_KEY to your .env file."
 
-    # Extract and execute JSON command if present
     try:
         m = re.search(r'\{[^{}]+\}', reply)
         if m:
@@ -618,20 +592,16 @@ def query_llm(text, history, user_name="Sir"):
 
     return reply
 
-# ════════════════════════════════════════════════════════════════
-#  SPEECH RECOGNITION
-# ════════════════════════════════════════════════════════════════
-# ── Shared microphone state ─────────────────────────────────────
-_mic_lock    = threading.Lock()   # only one thread uses mic at a time
-_wake_active = True               # wake thread runs when True
-_cmd_mode    = False              # True when listening for command
+_mic_lock    = threading.Lock()
+_wake_active = True              
+_cmd_mode    = False             
 
 def listen_once(timeout=8):
     global _wake_active, _cmd_mode
     if not SR_OK: return ""
     _cmd_mode    = True
-    _wake_active = False          # pause wake thread
-    time.sleep(0.3)               # let wake thread finish its current listen
+    _wake_active = False         
+    time.sleep(0.3)               
     rec = sr.Recognizer()
     rec.energy_threshold        = 250
     rec.dynamic_energy_threshold= True
@@ -653,15 +623,6 @@ def listen_once(timeout=8):
         _cmd_mode    = False
         _wake_active = True       # resume wake thread
 
-
-# ════════════════════════════════════════════════════════════════
-# ════════════════════════════════════════════════════════════════
-# ════════════════════════════════════════════════════════════════
-# ════════════════════════════════════════════════════════════════
-# ════════════════════════════════════════════════════════════════
-# ════════════════════════════════════════════════════════════════
-#  SIRI GLOBE — thin elegant waves like Apple Siri
-# ════════════════════════════════════════════════════════════════
 def rgb2hex(r,g,b): return f"#{int(r):02x}{int(g):02x}{int(b):02x}"
 def _b(c1,c2,t):
     t=max(0.0,min(1.0,t))
@@ -678,7 +639,6 @@ STATE_PALETTES = {
     STATE_SPEAKING:  {"core":(20,5,0),  "mid":(80,20,0),  "rim":(255,90,0),  "accent":(255,200,0), "plasma":(255,50,0)},
 }
 
-# Siri-like: each state has specific thin wave colors
 SIRI_WAVES = {
     STATE_IDLE: [
         {"col":(0,150,255),  "amp":0.30,"freq":1.5,"phase":0.0, "y":-0.50,"w":2,"glow":5},
@@ -772,17 +732,14 @@ class GlobeCanvas:
 
         img=Image.new("RGBA",(S,S),(0,0,0,0))
 
-        # ── Circle clip mask ──────────────────────────────────────
         mask=Image.new("L",(S,S),0)
         ImageDraw.Draw(mask).ellipse([cx-R,cy-R,cx+R,cy+R],fill=255)
 
-        # ── Dark navy sphere — just ONE flat fill, nothing else ───
         bg=Image.new("RGBA",(S,S),(0,0,0,0))
         ImageDraw.Draw(bg).ellipse([cx-R,cy-R,cx+R,cy+R],fill=(5,10,38,255))
         bg.putalpha(mask)
         img.alpha_composite(bg)
 
-        # ── Thin Siri waves ───────────────────────────────────────
         wlayer=Image.new("RGBA",(S,S),(0,0,0,0))
         wdraw=ImageDraw.Draw(wlayer)
 
@@ -799,7 +756,7 @@ class GlobeCanvas:
             for si in range(200):
                 nx=si/199
                 x =int(cx-R*0.96+nx*R*1.92)
-                # envelope: fade smoothly at left and right
+
                 env=math.sin(nx*math.pi)**0.6
                 y =cy+yoff+int(env*amp*(
                     math.sin(nx*math.pi*freq    +t*spd+phase     )*0.65+
@@ -809,14 +766,13 @@ class GlobeCanvas:
                 pts.append((x,y))
 
             pulse=0.6+0.4*abs(math.sin(t*1.2+phase))
-            # glow pass — very soft, wide
+
             wdraw.line(pts,fill=(*_a(col,0.15*pulse),int(60*pulse)),width=gw+4)
-            # mid glow
+
             wdraw.line(pts,fill=(*_a(col,0.35*pulse),int(120*pulse)),width=gw)
-            # thin bright core
+  
             wdraw.line(pts,fill=(*col,int(220*pulse)),width=lw)
 
-        # Clip to circle
         r2,g2,b2,a2=wlayer.split()
         a2=ImageChops.multiply(a2,mask)
         wlayer=Image.merge("RGBA",(r2,g2,b2,a2))
@@ -824,13 +780,11 @@ class GlobeCanvas:
 
         draw=ImageDraw.Draw(img)
 
-        # ── Clean rim glow only ───────────────────────────────────
         rim=pal["rim"]
         for w,alp in [(10,0.06),(7,0.14),(5,0.30),(3,0.60),(2,0.85),(1,1.0)]:
             draw.ellipse([cx-R,cy-R,cx+R,cy+R],
                          outline=(*_a(rim,alp),255),width=w)
 
-        # ── Tiny top-left shine (additive white, very subtle) ─────
         shine=Image.new("RGBA",(S,S),(0,0,0,0))
         shd=ImageDraw.Draw(shine)
         hx=cx-int(R*0.32); hy=cy-int(R*0.34)
@@ -858,8 +812,6 @@ class GlobeCanvas:
         self.canvas.create_oval(cx-R,cy-R,cx+R,cy+R,
                                 outline=rgb2hex(*pal["rim"]),width=3,fill="")
 
-#  MAIN APP
-# ════════════════════════════════════════════════════════════════
 class AthenaApp:
     S = 280
 
@@ -867,18 +819,16 @@ class AthenaApp:
         self.root = tk.Tk()
         self.root.title("Athena")
 
-        # ── Transparent, frameless, always-on-top ───────────────
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
         self.root.attributes("-transparentcolor", "#000000")
         self.root.configure(bg="#000000")
         self.root.resizable(False, False)
 
-        # ── Position: bottom-center near taskbar ────────────────
         sw = self.root.winfo_screenwidth()
         sh = self.root.winfo_screenheight()
         x  = (sw - self.S) // 2
-        y  = sh - self.S - 60    # 60px above taskbar
+        y  = sh - self.S - 60    
         self.root.geometry(f"{self.S}x{self.S}+{x}+{y}")
         self._home_x = x
         self._home_y = y
@@ -900,18 +850,16 @@ class AthenaApp:
 
         self._build_ui()
 
-        # Always start wake word thread using speech_recognition
         threading.Thread(target=self._wake_thread, daemon=True).start()
         threading.Thread(target=self._eq_loop, daemon=True).start()
 
         self.root.mainloop()
 
     def _build_ui(self):
-        # ── Just the globe, nothing else ────────────────────────
+
         self.globe = GlobeCanvas(self.root)
         self.globe.place(x=0, y=0)
 
-        # Hidden status — still tracked internally
         self._status  = tk.Label(self.root, text="", bg="#000", fg="#000", font=("Courier",1))
         self._status.place(x=0, y=0)
         self._lbl     = tk.Label(self.root, text="", bg="#000", fg="#000", font=("Courier",1))
@@ -941,14 +889,14 @@ class AthenaApp:
         self.state = s
         self.globe.set_state(s)
         if s == STATE_IDLE:
-            # Shrink to small dot near taskbar after 3 seconds
+
             self.root.after(3000, self._shrink)
         else:
             self._expand()
 
     def _shrink(self):
         if self.state != STATE_IDLE: return
-        # Animate to small 60px circle near taskbar
+
         sw = self.root.winfo_screenwidth()
         sh = self.root.winfo_screenheight()
         xs = (sw - 60) // 2
@@ -1035,7 +983,6 @@ class AthenaApp:
         rec.dynamic_energy_threshold = True
         rec.pause_threshold          = 0.5
 
-        # Use background listening — non-blocking
         def callback(recognizer, audio):
             global _wake_active
             if not _wake_active or _cmd_mode:
@@ -1058,7 +1005,6 @@ class AthenaApp:
                 rec.adjust_for_ambient_noise(src, duration=1.0)
                 print(f"[Wake] Energy threshold set to {rec.energy_threshold:.0f}")
 
-            # Start background listener — runs in its own thread automatically
             stop_fn = rec.listen_in_background(
                 sr.Microphone(),
                 callback,
@@ -1066,14 +1012,13 @@ class AthenaApp:
             )
             print("[Wake] Background listener active — say 'Hey Athena'")
 
-            # Keep thread alive
             while True:
                 time.sleep(0.5)
 
         except Exception as e:
             print(f"[Wake] Failed to start background listener: {e}")
             print("[Wake] Falling back to polling mode...")
-            # Fallback polling mode
+            
             while True:
                 if not _wake_active or _cmd_mode:
                     time.sleep(0.5)
@@ -1097,9 +1042,6 @@ class AthenaApp:
         save_memory(self.history)
         self.root.destroy()
 
-# ════════════════════════════════════════════════════════════════
-#  FIRST RUN SETUP
-# ════════════════════════════════════════════════════════════════
 def first_run():
     w = tk.Tk()
     w.title("Athena Setup"); w.geometry("340x200")
@@ -1122,9 +1064,6 @@ def first_run():
               padx=20, pady=6, cursor="hand2").pack()
     e.bind("<Return>", ok); w.mainloop()
 
-# ════════════════════════════════════════════════════════════════
-#  ENTRY POINT
-# ════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
     if not AUTH_PATH.exists():
         first_run()
