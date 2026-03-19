@@ -1,143 +1,188 @@
-# 🔵 ATHENA — AI Voice Assistant
+# ATHENA - AI Voice Assistant
 
-> *"Hey Athena"* — Your intelligent, floating desktop companion.
-
-A **Python desktop AI Voice Assistant** built as a final year project at Parul University.  
-Cross-platform · Frameless floating globe UI · GPT-4o powered · Voice-authenticated · Memory-enabled.
+> A next-gen AI desktop voice assistant with a Siri-style animated globe UI, neural voice, and full desktop control.
 
 ---
 
-## ✨ Features
+## Features
 
-| Feature | Description |
-|---|---|
-| 🎙️ **Wake Word** | Say *"Hey Athena"* to activate (powered by Porcupine) |
-| 🌐 **Floating Globe UI** | Animated holographic orb — idle, listening, thinking, speaking states |
-| 🧠 **GPT-4o Brain** | Full conversational AI with natural language understanding |
-| 💾 **Persistent Memory** | Remembers past conversations across sessions |
-| 🔐 **Voice Auth** | First-run user registration; voice-locked to owner |
-| 📂 **File Control** | Open apps, folders, search inside directories by voice |
-| ⏰ **Smart Alarm** | Spoken alarm — *"Good morning, Sir — time is up"* |
-| ✉️ **Voice-to-Text** | Dictate messages hands-free |
-| 🌍 **Cross-Platform** | Windows · macOS · Linux |
+- 🎤 **Wake Word Detection** — Say "Hey Athena" to activate, no button needed
+- 🌊 **Siri-Style Animated Globe** — Fluid wave animation that reacts to each state
+- 🗣️ **Neural TTS Voice** — Microsoft Aria Neural voice (human-like, not robotic)
+- 🌦️ **Live Weather** — Real-time weather via Open-Meteo (no API key needed)
+- 📱 **App Launcher** — Open any app by voice
+- 📁 **File & Folder Control** — Open, search folders by voice
+- ⏰ **Smart Alarms** — Keeps ringing until you say stop, with custom messages
+- 🔔 **Reminders** — Set reminders by voice for any time in minutes
+- 📄 **Document Writer** — Writes letters/emails and opens in Chrome with download button
+- 🧠 **Conversation Memory** — Remembers your past conversations
+- 🌐 **Transparent Floating UI** — Lives near your taskbar, expands on wake
 
 ---
 
-## 🚀 Quick Start
+## Setup
 
-### 1. Clone
-```bash
-git clone https://github.com/YOUR_USERNAME/athena-voice-assistant.git
-cd athena-voice-assistant
-```
-
-### 2. Install dependencies
 ```bash
 pip install -r requirements.txt
+cp .env.template .env
+# Add your API keys to .env
+python athena.py
 ```
-
-> **macOS/Linux PyAudio note:**
-> ```bash
-> # macOS:  brew install portaudio && pip install pyaudio
-> # Ubuntu: sudo apt install portaudio19-dev && pip install pyaudio
-> ```
-
-### 3. Set up API keys
-Create a `.env` file in the project root:
-```env
-OPENAI_API_KEY=sk-...
-PORCUPINE_ACCESS_KEY=...   # Free at picovoice.ai
-```
-
-### 4. Run!
-```bash
-python athena_globe.py
-```
-
-On first launch, Athena will ask your name for personalization.  
-Then the floating globe will appear — **drag it anywhere on screen**.
 
 ---
 
-## 🎮 Controls
+## API Keys
 
-| Action | Control |
-|---|---|
-| Wake Athena | Say *"Hey Athena"* OR press **Space** |
-| Quit | Press **Esc** OR **double-click** the globe |
-| Move | **Click & drag** anywhere on the window |
+| Key | Required | Get it |
+|-----|----------|--------|
+| `GROQ_API_KEY` | ✅ Yes | [console.groq.com](https://console.groq.com/keys) — Free |
+| `OPENAI_API_KEY` | ❌ Optional | [platform.openai.com](https://platform.openai.com/api-keys) — Fallback LLM |
+| `OPENWEATHER_API_KEY` | ❌ Optional | Uses Open-Meteo by default — no key needed |
 
 ---
 
-## 🗣️ Example Voice Commands
+## Voice Commands
 
+### 🔊 Wake
+```
+"Hey Athena"
+"Hi Athena"
+"Ok Athena"
+"Hello Athena"
+```
+
+### 📱 Open Apps
 ```
 "Hey Athena, open Chrome"
+"Hey Athena, open Spotify"
+"Hey Athena, open VS Code"
+"Hey Athena, open Notepad"
+"Hey Athena, open Discord"
+"Hey Athena, open Calculator"
+```
+
+### 📁 Files & Folders
+```
 "Hey Athena, open my Documents folder"
+"Hey Athena, open Downloads"
 "Hey Athena, search for report in my Downloads"
+"Hey Athena, search for resume in Documents"
+```
+
+### ⏰ Alarms
+```
 "Hey Athena, set an alarm for 7:30 AM, say Good morning Sir"
+"Hey Athena, wake me up at 6:00"
+"Hey Athena, set alarm for 9:00 with message time to study"
+```
+> Say **"Stop"** or **"Bas"** to dismiss the alarm
+
+### 🔔 Reminders
+```
+"Hey Athena, remind me to call John in 10 minutes"
+"Hey Athena, remind me to drink water in 30 minutes"
+"Hey Athena, remind me to take medicine in 5 minutes"
+"Hey Athena, remind me about the meeting in 15 minutes"
+```
+
+### 🌦️ Weather
+```
 "Hey Athena, what's the weather in Vadodara?"
+"Hey Athena, what is the temperature in Mumbai?"
+"Hey Athena, how is the weather in Delhi today?"
+```
+
+### 📄 Documents & Letters
+```
+"Hey Athena, write a leave application letter"
+"Hey Athena, write a formal email to my manager"
 "Hey Athena, write a message: Hi team, meeting at 3pm"
+"Hey Athena, write an apology letter"
+```
+> Say **"Download it"** or **"Save the file"** to save to Desktop
+
+### 🕐 Time & Date
+```
+"Hey Athena, what time is it?"
+"Hey Athena, what is today's date?"
+"Hey Athena, what day is it?"
+```
+
+### 💬 General Conversation
+```
+"Hey Athena, who is Elon Musk?"
+"Hey Athena, tell me a joke"
+"Hey Athena, what is machine learning?"
+"Hey Athena, help me write a Python function"
+```
+
+### 🛑 Stop / Control
+```
+"Stop"         → Stop speaking immediately
+"Chup"         → Stop (Hindi)
+"Bas"          → Stop (Hindi)
+"Dismiss"      → Dismiss alarm
+Press S key    → Stop speaking
+Press Esc      → Quit Athena
 ```
 
 ---
 
-## 🏗️ Architecture
+## Controls
+
+| Key | Action |
+|-----|--------|
+| Say **"Hey Athena"** | Wake up 🎤 |
+| `Space` | Wake (manual) |
+| `S` | Stop speaking 🛑 |
+| `Esc` | Quit ❌ |
+| `Drag` | Move globe anywhere |
+| `Double-click` | Quit ❌ |
+
+---
+
+## Project Structure
 
 ```
-athena_globe.py
-│
-├── AthenaGlobe          ← Tkinter floating globe UI (30fps animation)
-│   ├── States           ← idle · listening · thinking · speaking
-│   ├── Animation loop   ← breathing core, spinning rings, waveform bars
-│   └── Event queue      ← thread-safe UI updates
-│
-├── Wake word thread     ← pvporcupine (background listener)
-├── Conversation turn    ← listen → LLM → speak pipeline
-│
-├── query_llm()          ← GPT-4o with memory + command routing
-├── speak_text()         ← pyttsx3 TTS
-├── listen_once()        ← Google STT via speechrecognition
-│
-├── System Commands      ← open_app · open_folder · search_folder · set_alarm
-└── Memory               ← ~/.athena_memory.json  (last 40 exchanges)
+athena/
+├── athena.py          # Main application
+├── requirements.txt   # Dependencies
+├── .env.template      # API keys template
+├── README.md          # This file
+└── venv/              # Virtual environment (not uploaded)
 ```
 
 ---
 
-## 🔒 Security & Privacy
+## Requirements
 
-- **Voice authentication** — user registered on first run; name stored in `~/.athena_auth.json`
-- **Local memory** — conversation history stays on your machine (`~/.athena_memory.json`)
-- **No cloud audio storage** — audio is processed locally via Google STT (online) or can be replaced with Whisper (offline)
-- **API keys** — stored in `.env`, never committed to git (see `.gitignore`)
-
----
-
-## 🗺️ Roadmap (Next Steps)
-
-- [ ] **Step 2** — Wake word engine + voice fingerprint authentication
-- [ ] **Step 3** — Smart alarm with spoken messages
-- [ ] **Step 4** — File & app control engine
-- [ ] **Step 5** — Web search integration
-- [ ] **Step 6** — Offline mode (Whisper STT + local LLM)
-- [ ] **Step 7** — Multi-language support (Hindi, Gujarati)
-- [ ] **Step 8** — System tray integration
+```
+groq
+openai
+speechrecognition
+pyaudio
+pyttsx3
+edge-tts
+pygame
+Pillow
+python-dotenv
+pyautogui
+pyperclip
+```
 
 ---
 
-## 👥 Team
+## Mentors
 
-| Name | Roll No |
-|---|---|
-| Mahiman Joshi | 2403031087033 |
-| Saksham Sethi | 2403031087123 |
-| Nisarg Patel  | 2403031087153 |
-
-**Guided by:** Prof. Himani Parmar, Ravi, Assistant Professor (IT Dept), Parul University
+- **Himani Parmar**
+- **Ravi**
 
 ---
 
-## 📄 License
+## Developer
 
-MIT License — free to use, modify, and share with attribution.
+**Saksham Sethi** — Final Year Project, Parul University
+
+---
+
+*Built with ❤️ using Python, Groq LLaMA 3.3, Microsoft Azure Neural TTS, Open-Meteo API*
