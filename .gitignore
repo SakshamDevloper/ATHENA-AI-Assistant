@@ -1,0 +1,8 @@
+venv/
+__pycache__/
+*.pyc
+.env
+*.mp3
+fix_athena.py
+.athena_memory.json
+.athena_auth.json
