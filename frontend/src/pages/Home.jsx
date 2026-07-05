@@ -107,10 +107,12 @@ export default function Home() {
         logoUrl="/brand/logo.svg"
         items={[
           { label: 'Home', ariaLabel: 'Go to home page', link: '/' },
-          { label: 'Features', ariaLabel: 'View features', link: '#features' },
-          { label: 'Partners', ariaLabel: 'View partners', link: '#partners' },
+          { label: 'Features', ariaLabel: 'View features', link: '/features' },
+          { label: 'Partners', ariaLabel: 'View partners', link: '/partners' },
+          { label: 'Voice', ariaLabel: 'Voice assistant', link: '/voice' },
           ...(user ? [] : [{ label: 'Sign In', ariaLabel: 'Sign in to your account', link: '#signin' }]),
-          { label: 'Launch App', ariaLabel: 'Launch the assistant app', link: '/assistant' },
+          { label: 'Assistant', ariaLabel: 'Chat interface', link: '/assistant' },
+          { label: 'Voice', ariaLabel: 'Voice assistant', link: '/voice' },
         ]}
         accentColor="#5ed29c"
         colors={['#120F17', '#1e1d2a', '#2d2b3e']}
@@ -164,7 +166,7 @@ export default function Home() {
 
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <button
-              onClick={() => navigate('/voice')}
+              onClick={() => navigate('/assistant')}
               className="group relative overflow-hidden rounded-full px-8 py-3.5 font-bold text-sm transition-all duration-500 hover:scale-105"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-accent via-[#6366f1] to-accent bg-[length:200%_100%] animate-gradient-fast" />
@@ -173,7 +175,7 @@ export default function Home() {
               <span className="relative z-[2] flex items-center gap-2">
                 <Bolt size={16} className="text-accent group-hover:rotate-12 transition-transform duration-300" />
                 <span className="bg-gradient-to-r from-accent via-[#6366f1] to-accent bg-clip-text text-transparent bg-[length:200%_100%] animate-gradient-fast">
-                  Voice
+                  Start Chatting
                 </span>
                 <ArrowRight size={16} className="text-accent group-hover:translate-x-1 transition-transform duration-300" />
               </span>
@@ -182,8 +184,11 @@ export default function Home() {
               <span className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-[#6366f1]/60 rounded-tr-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
               <span className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-[#6366f1]/60 rounded-bl-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
             </button>
-            <button className="bg-white/5 backdrop-blur-xl rounded-full px-8 py-3.5 text-sm text-white/50 hover:text-white transition-all border border-white/10 hover:border-white/20">
-              Watch Demo
+            <button
+              onClick={() => navigate('/voice')}
+              className="bg-white/5 backdrop-blur-xl rounded-full px-8 py-3.5 text-sm text-white/50 hover:text-white transition-all border border-white/10 hover:border-white/20 hover:scale-105"
+            >
+              Voice
             </button>
           </div>
 

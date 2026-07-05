@@ -1,33 +1,37 @@
 import Strands from '../ReactBits/Strands'
 
-export default function VoiceStrands({ state = 'idle' }) {
-  const isActive = state === 'listening' || state === 'speaking' || state === 'thinking'
+export default function VoiceStrands({
+  state = 'idle',
+  liveAmplitude = 0,
+  liveHueShift = 0
+}) {
+  const isAsleep = state === 'idle'
 
-  if (!isActive) return null
+  const intensity = isAsleep ? 0.7 : 0.85
+  const speed = isAsleep ? 0.6 : 0.7
+  const glow = isAsleep ? 1.7 : 2.2
+  const waveAmp = isAsleep ? 1.2 : 1.4
 
-  const intensity = state === 'listening' ? 0.9 : state === 'speaking' ? 0.7 : 0.4
-  const speed = state === 'listening' ? 0.8 : state === 'speaking' ? 0.5 : 0.3
-  const count = state === 'listening' ? 6 : state === 'speaking' ? 5 : 4
-  const waveAmp = state === 'listening' ? 1.6 : state === 'speaking' ? 1.3 : 0.9
-
-  const rainbowColors = ['#FF4242', '#FF8C42', '#FAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#EC4899']
+  const mod = 1 + (liveAmplitude - 0.1) * 0.15
+  const steadyAmp = Math.max(0.6, Math.min(1.6, waveAmp * mod))
 
   return (
-    <div className="w-[min(80vw,700px)] h-[min(50vh,350px)] relative">
+    <div className="w-[min(90vw,840px)] h-[min(60vh,500px)] relative">
       <Strands
-        colors={rainbowColors}
-        count={count}
+        colors={['#5ed29c', '#22d3ee', '#6366f1', '#8B5CF6']}
+        count={3}
         speed={speed}
-        amplitude={waveAmp}
+        amplitude={steadyAmp}
         waviness={2.5}
-        thickness={0.9}
-        glow={3.5}
+        thickness={0.65}
+        glow={glow}
         taper={5}
         spread={1.4}
         intensity={intensity}
-        saturation={1.8}
-        opacity={0.9}
-        scale={1.4}
+        saturation={1.3}
+        opacity={0.85}
+        scale={1.5}
+        hueShift={liveHueShift}
       />
     </div>
   )

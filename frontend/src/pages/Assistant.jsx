@@ -418,6 +418,9 @@ export default function Assistant() {
         isFixed={true}
         items={[
           { label: 'Home', ariaLabel: 'Go to home page', link: '/' },
+          { label: 'Voice', ariaLabel: 'Voice assistant', link: '/voice' },
+          { label: 'Features', ariaLabel: 'View features', link: '/features' },
+          { label: 'Partners', ariaLabel: 'View partners', link: '/partners' },
           { label: 'History', ariaLabel: 'View conversation history', link: '/history' },
           ...(!user ? [{ label: 'Sign In', ariaLabel: 'Sign in to your account', onClick: () => setAuthOpen(true) }] : []),
         ]}
