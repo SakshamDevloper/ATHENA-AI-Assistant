@@ -10,13 +10,14 @@ import AuthModal from '../components/Auth/AuthModal'
 import { useChatStore } from '../stores/chatStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
-import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis'
+import { useSpeechSynthesis } from './useSpeechSynthesis'
 import { useAgentStream } from '../hooks/useAgentStream'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 
 import StaggeredMenu from '../components/ReactBits/StaggeredMenu'
 import MagicRings from '../components/ReactBits/MagicRings'
+import SplitText from '../components/ReactBits/SplitText'
 
 
 
@@ -229,9 +230,21 @@ function ChatInterface({ onSendMessage, onSpeakMessage }) {
       {messages.length === 0 && !isStreaming && (
         <div className="flex flex-col items-center justify-center h-full text-center py-8">
           <div className="mb-6">
-            <img src="/brand/logo.svg" alt="NexusAI" className="w-14 h-14 mx-auto opacity-60 neon-logo" />
+            <SplitText
+              text="What can I help with?"
+              className="text-2xl font-semibold text-center text-white/80"
+              delay={100}
+              duration={0.6}
+              ease="power3.out"
+              splitType="words, chars"
+              from={{ opacity: 0, y: 40 }}
+              to={{ opacity: 1, y: 0 }}
+              threshold={0.1}
+              rootMargin="-100px"
+              textAlign="center"
+              tag="h1"
+            />
           </div>
-          <h1 className="text-xl font-bold text-white/80 mb-1">What can I help with?</h1>
           <p className="text-sm text-text-muted mb-8 max-w-md">
             Ask anything — research, write, analyze, or code. I'm here to help.
           </p>
@@ -351,8 +364,7 @@ export default function Assistant() {
   }
 
   const handleMicToggle = () => {
-    if (speechRec.isListening) speechRec.stop()
-    else speechRec.start()
+    navigate('/voice')
   }
 
   const handleFileSelect = (e) => {
@@ -564,7 +576,7 @@ export default function Assistant() {
                           <FolderIcon size={14} /> Folder
                         </button>
                         <div className="border-t border-border-color my-1" />
-                        <button onClick={() => { setShowUpload(false); document.querySelector('[data-model-selector]')?.click() }}
+                        <button onClick={() => { setShowUpload(false); setTimeout(() => document.querySelector('[data-model-selector]')?.click(), 100) }}
                           className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-accent hover:text-accent/80 hover:bg-white/[0.04] rounded-lg transition-all text-left font-medium">
                           <Sparkles size={14} /> Switch Model
                         </button>

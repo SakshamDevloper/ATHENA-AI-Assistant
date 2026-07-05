@@ -13,7 +13,7 @@ export default function VoiceStrands({ state = 'idle' }) {
   const rainbowColors = ['#FF4242', '#FF8C42', '#FAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#EC4899']
 
   return (
-    <div className="w-[260px] h-[90px]">
+    <div className="w-[min(80vw,700px)] h-[min(50vh,350px)] relative">
       <Strands
         colors={rainbowColors}
         count={count}

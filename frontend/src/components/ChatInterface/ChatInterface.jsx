@@ -105,11 +105,11 @@ export default function ChatInterface() {
   const bottomRef = useRef(null)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages, pendingToolCalls])
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-6 space-y-5 scroll-smooth">
+    <div className="h-full min-h-0 overflow-y-auto px-4 pb-40 pt-6 space-y-5 scroll-smooth">
       {messages.length === 0 && !isStreaming && (
         <div className="flex flex-col items-center justify-center h-full text-center py-20 animate-fade-in">
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-5 ring-1 ring-accent/10 pulse-glow">

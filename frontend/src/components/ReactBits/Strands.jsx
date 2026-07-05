@@ -96,8 +96,12 @@ void main() {
 
   float lum = max(max(col.r, col.g), col.b);
   float alpha = clamp(lum, 0.0, 1.0) * uOpacity;
+  alpha *= step(0.001, alpha);
 
-  fragColor = vec4(col * uOpacity, alpha);
+  vec3 finalCol = col * uOpacity;
+  float finalAlpha = alpha * (lum > 0.001 ? 1.0 : 0.0);
+
+  fragColor = vec4(finalCol, finalAlpha);
 }
 `;
 
@@ -215,14 +219,22 @@ export default function Strands({
 
     const renderer = new Renderer({
       alpha: true,
-      premultipliedAlpha: true,
+      premultipliedAlpha: false,
       antialias: true
     });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendEquation(gl.FUNC_ADD);
     gl.canvas.style.backgroundColor = 'transparent';
+    gl.canvas.style.display = 'block';
+    gl.canvas.style.position = 'absolute';
+    gl.canvas.style.inset = '0';
+    gl.canvas.style.width = '100%';
+    gl.canvas.style.height = '100%';
+    gl.canvas.style.pointerEvents = 'none';
 
     const geometry = new Triangle(gl);
     if (geometry.attributes.uv) {
@@ -291,6 +303,13 @@ export default function Strands({
     const update = (t) => {
       animateId = requestAnimationFrame(update);
       const current = propsRef.current;
+
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.blendEquation(gl.FUNC_ADD);
+
       program.uniforms.uTime.value = t * 0.001;
       program.uniforms.uColors.value = buildPalette(current.colors);
       program.uniforms.uColorCount.value = Math.min(current.colors.length, MAX_COLORS);
@@ -331,5 +350,5 @@ export default function Strands({
     };
   }, []);
 
-  return <div ref={ctnDom} className={`relative w-full h-full bg-transparent ${className}`} style={style} />;
+  return <div ref={ctnDom} className={`relative w-full h-full overflow-hidden bg-transparent ${className}`} style={{...style, backgroundColor: 'transparent'}} />;
 }

@@ -1,0 +1,21 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="40" fill="url(#bg)"/>
+  <g transform="translate(50,45)">
+    <path d="M25 100C25 71.4315 47.4315 49 76 49H99C127.569 49 150 71.4315 150 100V126C150 154.569 127.569 177 99 177H76C47.4315 177 25 154.569 25 126V100Z" fill="white" fill-opacity="0.08"/>
+    <path d="M65 70C65 56.1929 76.1929 45 90 45H110C123.807 45 135 56.1929 135 70V96C135 109.807 123.807 121 110 121H90C76.1929 121 65 109.807 65 96V70Z" stroke="white" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M90 45L90 121" stroke="#22d3ee" stroke-width="10" stroke-linecap="round"/>
+    <path d="M65 70L110 70" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="90" cy="82" r="6" fill="#ffffff"/>
+  </g>
+  <rect width="200" height="200" rx="40" fill="url(#shine)"/>
+</svg>

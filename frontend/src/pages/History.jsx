@@ -113,7 +113,8 @@ export default function History() {
                     <ChevronRight size={14} className="text-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteSession(session.id) }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-white/20 hover:text-red-400 p-1"
+                      className="transition-opacity text-white/50 hover:text-red-400 p-1"
+                      aria-label="Delete conversation"
                     >
                       <TrashCan size={14} />
                     </button>

@@ -164,19 +164,16 @@ export default function Home() {
 
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <button
-              onClick={() => navigate('/assistant')}
+              onClick={() => navigate('/voice')}
               className="group relative overflow-hidden rounded-full px-8 py-3.5 font-bold text-sm transition-all duration-500 hover:scale-105"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-accent via-[#6366f1] to-accent bg-[length:200%_100%] animate-gradient-fast" />
-              <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer-fast" />
-              </span>
               <span className="absolute inset-[1px] rounded-full bg-bg-deep z-[1]" />
               <span className="absolute inset-[1px] rounded-full bg-gradient-to-r from-accent/10 via-[#6366f1]/10 to-accent/10 bg-[length:200%_100%] animate-gradient-fast z-[1]" />
               <span className="relative z-[2] flex items-center gap-2">
                 <Bolt size={16} className="text-accent group-hover:rotate-12 transition-transform duration-300" />
                 <span className="bg-gradient-to-r from-accent via-[#6366f1] to-accent bg-clip-text text-transparent bg-[length:200%_100%] animate-gradient-fast">
-                  Start Chatting
+                  Voice
                 </span>
                 <ArrowRight size={16} className="text-accent group-hover:translate-x-1 transition-transform duration-300" />
               </span>

@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowRight,
+  faArrowLeft,
   faWandSparkles,
   faMicrophone,
   faComment,
@@ -47,6 +48,7 @@ function icon(iconDef) {
 }
 
 export const ArrowRight = icon(faArrowRight)
+export const ArrowLeft = icon(faArrowLeft)
 export const Sparkles = icon(faWandSparkles)
 export const Microphone = icon(faMicrophone)
 export const Comment = icon(faComment)

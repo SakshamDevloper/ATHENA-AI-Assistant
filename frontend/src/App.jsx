@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import Assistant from './pages/Assistant'
 import History from './pages/History'
+import Voice from './pages/Voice'
 import { AuthProvider } from './hooks/useAuth'
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/assistant" element={<Assistant />} />
+        <Route path="/voice" element={<Voice />} />
         <Route path="/history" element={<History />} />
       </Routes>
     </AuthProvider>
