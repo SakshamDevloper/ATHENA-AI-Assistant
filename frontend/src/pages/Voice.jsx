@@ -233,11 +233,31 @@ export default function Voice() {
 
       <div className="relative w-full max-w-[1080px]">
         <div className="relative mx-auto flex flex-col items-center justify-center" onClick={active ? undefined : handleToggle}>
-          <VoiceStrands
-            state={voiceState}
-            liveAmplitude={audio.amplitude}
-            liveHueShift={hueShift}
-          />
+          <div className="relative">
+            {active && (
+              <div className="absolute -inset-[3px] rounded-[50%] opacity-70 pointer-events-none" style={{
+                background: 'conic-gradient(from var(--angle), #ff0000, #ff7700, #ffff00, #00ff00, #0000ff, #8b00ff, #ff0000)',
+                animation: 'spinRainbow 2s linear infinite',
+                WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px))',
+                mask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px))',
+              }} />
+            )}
+            <style>{`
+              @property --angle {
+                syntax: '<angle>';
+                initial-value: 0deg;
+                inherits: false;
+              }
+              @keyframes spinRainbow {
+                to { --angle: 360deg; }
+              }
+            `}</style>
+            <VoiceStrands
+              state={voiceState}
+              liveAmplitude={audio.amplitude}
+              liveHueShift={hueShift}
+            />
+          </div>
 
           <div className="mt-3 text-center max-w-2xl">
             <SplitText
