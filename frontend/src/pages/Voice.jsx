@@ -8,6 +8,28 @@ import { useSpeechSynthesis } from './useSpeechSynthesis'
 
 export default function Voice() {
   const [voiceState, setVoiceState] = useState('idle')
+
+  useEffect(() => {
+    const s = document.createElement('style')
+    s.textContent = `
+      .rainbow-edge {
+        box-shadow: 0 0 20px 4px rgba(255,0,0,0.25), 0 0 50px 10px rgba(255,0,0,0.1);
+        animation: rainbowCycle 6s linear infinite;
+        border-radius: 14px;
+      }
+      @keyframes rainbowCycle {
+        0% { box-shadow: 0 0 20px 4px rgba(255,0,0,0.25), 0 0 50px 10px rgba(255,0,0,0.1); }
+        16% { box-shadow: 0 0 20px 4px rgba(255,119,0,0.25), 0 0 50px 10px rgba(255,119,0,0.1); }
+        33% { box-shadow: 0 0 20px 4px rgba(255,255,0,0.25), 0 0 50px 10px rgba(255,255,0,0.1); }
+        50% { box-shadow: 0 0 20px 4px rgba(0,255,0,0.25), 0 0 50px 10px rgba(0,255,0,0.1); }
+        66% { box-shadow: 0 0 20px 4px rgba(0,119,255,0.25), 0 0 50px 10px rgba(0,119,255,0.1); }
+        83% { box-shadow: 0 0 20px 4px rgba(139,0,255,0.25), 0 0 50px 10px rgba(139,0,255,0.1); }
+        100% { box-shadow: 0 0 20px 4px rgba(255,0,0,0.25), 0 0 50px 10px rgba(255,0,0,0.1); }
+      }
+    `
+    document.head.appendChild(s)
+    return () => s.remove()
+  }, [])
   const [statusMsg, setStatusMsg] = useState('')
   const [responseText, setResponseText] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
@@ -152,7 +174,7 @@ export default function Voice() {
 
   if (!activated) {
     return (
-      <div className="min-h-screen bg-bg-deep flex items-center justify-center overflow-hidden px-4 py-8 select-none">
+      <div className="rainbow-edge min-h-screen bg-bg-deep flex items-center justify-center overflow-hidden px-4 py-8 select-none rounded-2xl">
         <StaggeredMenu
           position="right"
           isFixed={true}
@@ -184,7 +206,7 @@ export default function Voice() {
 
   if (wake.isBlocked && !wake.isListening && !audio.isActive) {
     return (
-      <div className="min-h-screen bg-bg-deep flex items-center justify-center overflow-hidden px-4 py-8 select-none">
+      <div className="rainbow-edge min-h-screen bg-bg-deep flex items-center justify-center overflow-hidden px-4 py-8 select-none rounded-2xl">
         <StaggeredMenu
           position="right"
           isFixed={true}
@@ -213,7 +235,7 @@ export default function Voice() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-deep flex items-center justify-center overflow-hidden px-4 py-8 select-none">
+    <div className="rainbow-edge min-h-screen bg-bg-deep flex items-center justify-center overflow-hidden px-4 py-8 select-none rounded-2xl">
       <StaggeredMenu
         position="right"
         isFixed={true}
