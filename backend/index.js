@@ -5,9 +5,9 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import admin from 'firebase-admin'
 
-import { connectMongo, closeMongo, getDb } from './src/services/memory/mongo.js'
+import { connectMongo, closeMongo } from './src/services/memory/mongo.js'
 import { connectRedis, closeRedis } from './src/services/memory/redis.js'
-import { streamResponse } from './src/services/llm/router.js'
+import { streamResponse, initModels } from './src/services/llm/router.js'
 import { toolDefinitions, executeTool } from './src/services/tools/index.js'
 import authRoutes from './src/routes/auth.js'
 import memoryRoutes from './src/routes/memory.js'
@@ -28,13 +28,25 @@ const io = new Server(httpServer, {
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true }))
 app.use(express.json())
 
+function parsePrivateKey(raw) {
+  if (!raw) return raw
+  let key = raw.trim()
+  if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1)
+  }
+  if (key.includes('\\n')) {
+    key = key.replace(/\\n/g, '\n')
+  }
+  return key
+}
+
 try {
   if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        privateKey: parsePrivateKey(process.env.FIREBASE_PRIVATE_KEY),
       }),
     })
     console.log('Firebase Admin initialized')
@@ -147,7 +159,6 @@ Be concise but thorough. Format code blocks with language tags.`,
       let iteration = 0
 
       let fullContent = ''
-      let toolCallsMadeOverall = false
 
       while (iteration < maxIterations) {
         let toolCallsMade = false
@@ -164,7 +175,6 @@ Be concise but thorough. Format code blocks with language tags.`,
           },
           async (callId, name, args) => {
             toolCallsMade = true
-            toolCallsMadeOverall = true
             socket.emit('tool_call', { callId, name, arguments: JSON.stringify(args) })
 
             const result = await executeTool(name, args)
@@ -206,18 +216,13 @@ Be concise but thorough. Format code blocks with language tags.`,
 })
 
 async function start() {
-  try {
-    await connectMongo()
-    await connectRedis()
-
-    const PORT = process.env.PORT || 3001
-    httpServer.listen(PORT, () => {
-      console.log(`NexusAI Backend running on http://localhost:${PORT}`)
-    })
-  } catch (error) {
-    console.error('Failed to start server:', error)
-    process.exit(1)
-  }
+  await connectMongo()
+  await connectRedis()
+  await initModels()
+  const PORT = process.env.PORT || 3001
+  httpServer.listen(PORT, () => {
+    console.log(`NexusAI Backend running on http://localhost:${PORT}`)
+  })
 }
 
 process.on('SIGTERM', async () => {

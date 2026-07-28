@@ -6,13 +6,13 @@ export const webSearchTool = {
   type: 'function',
   function: {
     name: 'web_search',
-    description: 'Search the web for real-time information. Use for current events, news, facts, or any topic requiring up-to-date data.',
+    description: 'Search the web for real-time information.',
     parameters: {
       type: 'object',
       properties: {
         query: { type: 'string', description: 'Search query' },
-        max_results: { type: 'number', default: 5 },
-        search_depth: { type: 'string', enum: ['basic', 'advanced'], default: 'basic' },
+        max_results: { type: 'number', description: 'Number of results (1-10)' },
+        search_depth: { type: 'string', enum: ['basic', 'advanced'], description: 'Search depth' },
       },
       required: ['query'],
     },

@@ -119,7 +119,7 @@ export default function Home() {
         openMenuButtonColor="#5ed29c"
         changeMenuColorOnOpen={true}
         displaySocials={false}
-        displayItemNumbering={true}
+        displayItemNumbering={false}
       />
 
       {/* Hero Section */}

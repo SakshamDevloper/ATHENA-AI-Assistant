@@ -31,7 +31,7 @@ export default function Nexus() {
         openMenuButtonColor="#5ed29c"
         changeMenuColorOnOpen={true}
         displaySocials={false}
-        displayItemNumbering={true}
+        displayItemNumbering={false}
       />
 
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-24">

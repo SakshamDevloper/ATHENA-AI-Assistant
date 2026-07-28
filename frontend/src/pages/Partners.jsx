@@ -187,7 +187,7 @@ export default function Partners() {
         openMenuButtonColor="#5ed29c"
         changeMenuColorOnOpen={true}
         displaySocials={false}
-        displayItemNumbering={true}
+        displayItemNumbering={false}
       />
 
         <div className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-8">

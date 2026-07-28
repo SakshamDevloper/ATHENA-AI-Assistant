@@ -164,7 +164,7 @@ export default function Features() {
         openMenuButtonColor="#5ed29c"
         changeMenuColorOnOpen={true}
         displaySocials={false}
-        displayItemNumbering={true}
+        displayItemNumbering={false}
       />
 
       {/* Decorative MagicRings */}

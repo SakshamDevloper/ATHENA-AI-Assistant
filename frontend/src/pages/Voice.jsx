@@ -174,6 +174,8 @@ export default function Voice() {
 
   if (!activated) {
     return (
+      <>
+      <div className="rainbow-neon-edges" />
       <div className="rainbow-edge min-h-screen bg-bg-deep flex items-center justify-center overflow-hidden px-4 py-8 select-none rounded-2xl">
         <StaggeredMenu
           position="right"
@@ -188,7 +190,7 @@ export default function Voice() {
           openMenuButtonColor="#5ed29c"
           changeMenuColorOnOpen={true}
           displaySocials={false}
-          displayItemNumbering={true}
+          displayItemNumbering={false}
         />
         <div className="flex flex-col items-center gap-6">
           <VoiceStrands state="idle" />
@@ -201,11 +203,14 @@ export default function Voice() {
           <p className="text-sm text-white/40">Grant microphone access when prompted</p>
         </div>
       </div>
+      </>
     )
   }
 
   if (wake.isBlocked && !wake.isListening && !audio.isActive) {
     return (
+      <>
+      <div className="rainbow-neon-edges" />
       <div className="rainbow-edge min-h-screen bg-bg-deep flex items-center justify-center overflow-hidden px-4 py-8 select-none rounded-2xl">
         <StaggeredMenu
           position="right"
@@ -220,7 +225,7 @@ export default function Voice() {
           openMenuButtonColor="#5ed29c"
           changeMenuColorOnOpen={true}
           displaySocials={false}
-          displayItemNumbering={true}
+          displayItemNumbering={false}
         />
         <div className="flex flex-col items-center gap-4">
           <VoiceStrands state="idle" />
@@ -231,10 +236,13 @@ export default function Voice() {
           </button>
         </div>
       </div>
+      </>
     )
   }
 
   return (
+    <>
+    <div className="rainbow-neon-edges" />
     <div className="rainbow-edge min-h-screen bg-bg-deep flex items-center justify-center overflow-hidden px-4 py-8 select-none rounded-2xl">
       <StaggeredMenu
         position="right"
@@ -250,7 +258,7 @@ export default function Voice() {
         openMenuButtonColor="#5ed29c"
         changeMenuColorOnOpen={true}
         displaySocials={false}
-        displayItemNumbering={true}
+        displayItemNumbering={false}
       />
 
       <div className="relative w-full max-w-[1080px]">
@@ -304,5 +312,6 @@ export default function Voice() {
         </div>
       </div>
     </div>
+    </>
   )
 }

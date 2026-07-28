@@ -24,8 +24,6 @@ function makeProvider(clientClass, apiKey, baseURL, model, supportsTools = true)
   }
 }
 
-const defaultProvider = 'llama-3.3'
-
 let _providers = null
 
 async function getProviders() {
@@ -45,24 +43,25 @@ async function getProviders() {
   return _providers
 }
 
-function getDefaultProvider() {
-  const entry = Object.values(_providers || {}).find(p => p !== null)
+async function getDefaultProvider() {
+  const providers = await getProviders()
+  const entry = Object.values(providers).find(p => p !== null)
   return entry || null
 }
 
 export async function getProvider(modelId) {
   const providers = await getProviders()
-  return providers[modelId] || getDefaultProvider()
+  return providers[modelId] || await getDefaultProvider()
 }
 
 export function getAvailableModels() {
   return Object.entries(_providers || {})
     .filter(([, p]) => p !== null)
-    .map(([id, config]) => ({
-      id,
-      model: config.model,
-      supportsTools: config.supportsTools,
-    }))
+    .map(([id, config]) => ({ id, model: config.model, supportsTools: config.supportsTools }))
+}
+
+export async function initModels() {
+  await getProviders()
 }
 
 export async function streamResponse(modelId, messages, tools, onToken, onToolCall) {
@@ -85,7 +84,23 @@ export async function streamResponse(modelId, messages, tools, onToken, onToolCa
     requestOptions.tool_choice = 'auto'
   }
 
-  const stream = await provider.client.chat.completions.create(requestOptions)
+  let stream
+  try {
+    stream = await provider.client.chat.completions.create(requestOptions)
+  } catch (err) {
+    const msg = err.message || ''
+    if (msg.includes('quota') || msg.includes('429') || msg.includes('insufficient_quota')) {
+      throw new Error(`Quota exceeded for ${modelId}. Try switching to another model.`)
+    }
+    if (tools && tools.length > 0 && (msg.includes('tools') || msg.includes('function') || msg.includes('type'))) {
+      console.warn(`Tools rejected by ${modelId}, retrying without tools:`, msg)
+      delete requestOptions.tools
+      delete requestOptions.tool_choice
+      stream = await provider.client.chat.completions.create(requestOptions)
+    } else {
+      throw err
+    }
+  }
 
   let fullContent = ''
   let toolCalls = []

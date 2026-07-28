@@ -12,7 +12,7 @@ const defaultModels = [
 export const useSettingsStore = create(
   persist(
     (set, get) => ({
-      selectedModel: 'gpt-4o-mini',
+      selectedModel: 'llama-3.3',
       availableModels: defaultModels,
       voiceEnabled: true,
       voiceSpeed: 1.0,

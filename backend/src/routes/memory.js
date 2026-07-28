@@ -6,7 +6,7 @@ router.get('/', async (req, res) => {
   try {
     const { getMemoriesCollection } = await import('../services/memory/mongo.js')
     const memories = getMemoriesCollection()
-    const items = await memories.find({}).sort({ updatedAt: -1 }).limit(50).toArray()
+    const items = await memories.find({}, { sort: { updatedAt: -1 }, limit: 50 })
     res.json({ memories: items })
   } catch {
     res.json({ memories: [] })
@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
     const memories = getMemoriesCollection()
     await memories.updateOne(
       { key },
-      { $set: { key, value, type, updatedAt: new Date() } },
+      { $set: { key, value, type } },
       { upsert: true }
     )
     res.json({ success: true })

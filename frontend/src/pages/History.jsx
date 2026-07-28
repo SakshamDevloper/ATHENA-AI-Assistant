@@ -64,7 +64,7 @@ export default function History() {
         openMenuButtonColor="#5ed29c"
         changeMenuColorOnOpen={true}
         displaySocials={false}
-        displayItemNumbering={true}
+        displayItemNumbering={false}
       />
 
       <div className="max-w-3xl mx-auto px-4 py-8">

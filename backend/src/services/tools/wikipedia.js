@@ -6,12 +6,12 @@ export const wikipediaTool = {
   type: 'function',
   function: {
     name: 'wikipedia_lookup',
-    description: 'Look up information on Wikipedia. Use for factual queries, definitions, history, biographies, etc.',
+    description: 'Look up information on Wikipedia for factual queries.',
     parameters: {
       type: 'object',
       properties: {
         query: { type: 'string', description: 'Search term or article title' },
-        sentences: { type: 'number', default: 5 },
+        sentences: { type: 'number', description: 'Number of summary sentences' },
       },
       required: ['query'],
     },

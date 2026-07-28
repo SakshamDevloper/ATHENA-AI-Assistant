@@ -1,0 +1,10 @@
+[
+  {
+    "_id": "2b215840-121d-4d38-b662-0843ac0cd8c5",
+    "key": "test_key",
+    "value": "test_value",
+    "type": "preference",
+    "createdAt": "2026-07-07T07:20:07.809Z",
+    "updatedAt": "2026-07-07T07:20:07.809Z"
+  }
+]

@@ -11,8 +11,8 @@ export const weatherTool = {
       type: 'object',
       properties: {
         location: { type: 'string', description: 'City name or coordinates (lat,lon)' },
-        units: { type: 'string', enum: ['metric', 'imperial'], default: 'metric' },
-        forecast: { type: 'boolean', default: false },
+        units: { type: 'string', enum: ['metric', 'imperial'], description: 'Units system' },
+        forecast: { type: 'boolean', description: 'Get 5-day forecast' },
       },
       required: ['location'],
     },
@@ -26,16 +26,10 @@ export async function executeWeather({ location, units = 'metric', forecast = fa
   }
 
   try {
-    let url = forecast
-      ? `${WEATHER_URL}/forecast`
-      : `${WEATHER_URL}/weather`
+    let url = forecast ? `${WEATHER_URL}/forecast` : `${WEATHER_URL}/weather`
 
     const response = await axios.get(url, {
-      params: {
-        q: location,
-        units,
-        appid: OPENWEATHER_API_KEY,
-      },
+      params: { q: location, units, appid: OPENWEATHER_API_KEY },
       timeout: 10000,
     })
 
@@ -49,7 +43,6 @@ export async function executeWeather({ location, units = 'metric', forecast = fa
           feels_like: item.main.feels_like,
           humidity: item.main.humidity,
           condition: item.weather[0].description,
-          icon: item.weather[0].icon,
         })),
       }
     }
@@ -62,9 +55,7 @@ export async function executeWeather({ location, units = 'metric', forecast = fa
       humidity: response.data.main.humidity,
       pressure: response.data.main.pressure,
       condition: response.data.weather[0].description,
-      icon: response.data.weather[0].icon,
       wind_speed: response.data.wind.speed,
-      wind_deg: response.data.wind.deg,
     }
   } catch (error) {
     console.error('Weather error:', error.message)
