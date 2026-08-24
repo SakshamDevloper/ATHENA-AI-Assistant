@@ -64,11 +64,28 @@ export async function initModels() {
   await getProviders()
 }
 
-export async function streamResponse(modelId, messages, tools, onToken, onToolCall) {
+async function tryFallbackProviders(modelId, messages, tools, onToken, onToolCall) {
+  const providers = _providers || {}
+  const fallbackOrder = Object.keys(providers)
+    .filter(id => id !== modelId && providers[id] !== null)
+
+  for (const fallbackId of fallbackOrder) {
+    console.warn(`Attempting fallback to ${fallbackId}...`)
+    try {
+      return await streamResponse(fallbackId, messages, tools, onToken, onToolCall)
+    } catch (fallbackErr) {
+      console.warn(`Fallback ${fallbackId} also failed:`, fallbackErr.message)
+    }
+  }
+  throw new Error(`All models exhausted. Please check your API keys and quota.`)
+}
+
+export async function streamResponse(modelId, messages, tools, onToken, onToolCall, retriedWithoutTools = false) {
   const provider = await getProvider(modelId)
 
   if (!provider || !provider.client) {
-    throw new Error(`Model "${modelId}" not configured. Set the required API key in your .env file.`)
+    const result = await tryFallbackProviders(modelId, messages, tools, onToken, onToolCall)
+    return result
   }
 
   const requestOptions = {
@@ -90,15 +107,18 @@ export async function streamResponse(modelId, messages, tools, onToken, onToolCa
   } catch (err) {
     const msg = err.message || ''
     if (msg.includes('quota') || msg.includes('429') || msg.includes('insufficient_quota')) {
-      throw new Error(`Quota exceeded for ${modelId}. Try switching to another model.`)
+      console.warn(`Quota exceeded for ${modelId}, trying fallback providers...`)
+      const result = await tryFallbackProviders(modelId, messages, tools, onToken, onToolCall)
+      return result
     }
-    if (tools && tools.length > 0 && (msg.includes('tools') || msg.includes('function') || msg.includes('type'))) {
+    if (!retriedWithoutTools && tools && tools.length > 0 && (msg.includes('tools') || msg.includes('function') || msg.includes('type'))) {
       console.warn(`Tools rejected by ${modelId}, retrying without tools:`, msg)
       delete requestOptions.tools
       delete requestOptions.tool_choice
       stream = await provider.client.chat.completions.create(requestOptions)
     } else {
-      throw err
+      const result = await tryFallbackProviders(modelId, messages, tools, onToken, onToolCall)
+      return result
     }
   }
 

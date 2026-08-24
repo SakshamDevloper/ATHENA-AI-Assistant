@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { randomId } from '../utils/randomId'
 
 export const useChatStore = create(
   persist(
@@ -11,7 +12,7 @@ export const useChatStore = create(
       pendingToolCalls: [],
 
       addMessage: (message) => set((state) => ({
-        messages: [...state.messages, { ...message, id: message.id || crypto.randomUUID(), timestamp: Date.now() }]
+        messages: [...state.messages, { ...message, id: message.id || randomId(), timestamp: Date.now() }]
       })),
 
       updateMessage: (id, updates) => set((state) => ({
@@ -41,7 +42,7 @@ export const useChatStore = create(
         if (messages.length === 0) return
 
         const session = {
-          id: currentSessionId || crypto.randomUUID(),
+          id: currentSessionId || randomId(),
           title: messages[0]?.content?.slice(0, 50) || 'New Chat',
           messages,
           createdAt: Date.now(),

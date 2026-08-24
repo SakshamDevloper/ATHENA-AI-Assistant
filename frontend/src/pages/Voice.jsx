@@ -4,7 +4,7 @@ import SplitText from '../components/ReactBits/SplitText'
 import StaggeredMenu from '../components/ReactBits/StaggeredMenu'
 import { useWakeWord } from '../hooks/useWakeWord'
 import { useAudioAnalyzer } from '../hooks/useAudioAnalyzer'
-import { useSpeechSynthesis } from './useSpeechSynthesis'
+import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis'
 
 export default function Voice() {
   const [voiceState, setVoiceState] = useState('idle')

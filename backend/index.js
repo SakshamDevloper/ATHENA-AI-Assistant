@@ -2,6 +2,8 @@ import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 import cors from 'cors'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
 import admin from 'firebase-admin'
 
@@ -11,21 +13,34 @@ import { streamResponse, initModels } from './src/services/llm/router.js'
 import { toolDefinitions, executeTool } from './src/services/tools/index.js'
 import authRoutes from './src/routes/auth.js'
 import memoryRoutes from './src/routes/memory.js'
+import compareRoutes from './src/routes/compare.js'
+import branchRoutes from './src/routes/branches.js'
+import suggestionRoutes from './src/routes/suggestions.js'
 
 dotenv.config()
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const app = express()
 const httpServer = createServer(app)
 
+if (process.env.NODE_ENV === 'production') {
+  const frontendDist = path.join(__dirname, '..', 'frontend', 'dist')
+  app.use(express.static(frontendDist))
+}
+
+const CLIENT_ORIGIN = process.env.FRONTEND_URL || process.env.ORIGIN || 'http://localhost:5173'
+
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: CLIENT_ORIGIN,
     methods: ['GET', 'POST'],
     credentials: true,
   },
 })
 
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true }))
+app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }))
 app.use(express.json())
 
 function parsePrivateKey(raw) {
@@ -134,6 +149,16 @@ Be concise but thorough. Format code blocks with language tags.`,
 
 app.use('/api/auth', authRoutes)
 app.use('/api/memory', memoryRoutes)
+app.use('/api/compare', compareRoutes)
+app.use('/api/branches', branchRoutes)
+app.use('/api/suggestions', suggestionRoutes)
+
+if (process.env.NODE_ENV === 'production') {
+  const frontendDist = path.join(__dirname, '..', 'frontend', 'dist')
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'))
+  })
+}
 
 io.on('connection', (socket) => {
   console.log(`Client connected: ${socket.id}`)

@@ -10,14 +10,18 @@ import AuthModal from '../components/Auth/AuthModal'
 import { useChatStore } from '../stores/chatStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
-import { useSpeechSynthesis } from './useSpeechSynthesis'
+import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis'
 import { useAgentStream } from '../hooks/useAgentStream'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
+import { randomId } from '../utils/randomId'
 
 import StaggeredMenu from '../components/ReactBits/StaggeredMenu'
 import MagicRings from '../components/ReactBits/MagicRings'
 import SplitText from '../components/ReactBits/SplitText'
+import { CompareToggle, ModelSelector as CompareModelSelector, CompareResults } from '../components/CompareMode/CompareMode'
+import BranchView from '../components/BranchView/BranchView'
+import Suggestions from '../components/Suggestions/Suggestions'
 
 
 
@@ -293,6 +297,10 @@ export default function Assistant() {
   const [orbState, setOrbState] = useState('idle')
   const [showUpload, setShowUpload] = useState(false)
   const [filePreviews, setFilePreviews] = useState([])
+  const [compareMode, setCompareMode] = useState(false)
+  const [compareModels, setCompareModels] = useState(['gpt-4o-mini', 'deepseek', 'llama-3.3'])
+  const [compareResults, setCompareResults] = useState(null)
+  const [branchOpen, setBranchOpen] = useState(false)
   const inputRef = useRef(null)
   const fileRef = useRef(null)
   const folderRef = useRef(null)
@@ -350,11 +358,43 @@ export default function Assistant() {
   const handleSend = useCallback(() => {
     if (!input.trim() || isStreaming) return
     saveSession()
-    sendMessage(input.trim())
+
+    if (compareMode) {
+      setCompareResults(null)
+      setStreaming(true)
+      fetch('/api/compare', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          content: input.trim(),
+          models: compareModels,
+          history: messages.slice(-10).map(m => ({ role: m.role, content: m.content })),
+        }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          setCompareResults(data)
+          useChatStore.getState().addMessage({
+            id: randomId(),
+            role: 'user',
+            content: input.trim(),
+          })
+          useChatStore.getState().addMessage({
+            id: randomId(),
+            role: 'assistant',
+            content: `[Multi-Model Comparison — ${data.responses?.filter(r => r.content).length || 0} models responded]`,
+          })
+        })
+        .catch(err => setCompareResults({ error: err.message }))
+        .finally(() => setStreaming(false))
+    } else {
+      sendMessage(input.trim())
+    }
+
     setInput('')
     setFilePreviews([])
     inputRef.current?.focus()
-  }, [input, isStreaming, saveSession, sendMessage])
+  }, [input, isStreaming, saveSession, sendMessage, compareMode, compareModels, messages])
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -518,6 +558,33 @@ export default function Assistant() {
               onSpeakMessage={(text) => {
                 synth.speak(text, { rate: voiceSpeed, pitch: voicePitch })
               }} />
+
+            {/* Proactive Suggestions */}
+            {!isStreaming && messages.length > 0 && (
+              <div className="px-4 pb-2">
+                <Suggestions
+                  messages={messages}
+                  onSelect={(text) => {
+                    saveSession()
+                    compareMode
+                      ? handleSend()
+                      : sendMessage(text)
+                    setInput('')
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Compare Results */}
+            {compareResults && (
+              <div className="px-4 pb-2">
+                <CompareResults
+                  responses={compareResults.responses}
+                  consensus={compareResults.consensus}
+                  onClose={() => setCompareResults(null)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Voice animation between chat and input */}
@@ -525,6 +592,16 @@ export default function Assistant() {
             <div className="flex justify-center py-2">
               <VoiceStrands state={orbState} />
             </div>
+          )}
+
+          {/* Branch View */}
+          {branchOpen && (
+            <BranchView
+              sessionId={currentSessionId}
+              currentMessageId={messages.length > 0 ? messages[messages.length - 1]?.id : null}
+              onSwitchSession={(id) => { loadSession(id); setBranchOpen(false) }}
+              onClose={() => setBranchOpen(false)}
+            />
           )}
 
           {/* Hidden ModelSelector for plus button trigger */}
@@ -554,6 +631,28 @@ export default function Assistant() {
                   )}
                 </div>
               )}
+
+              {/* Compare mode toggles */}
+              {compareMode && (
+                <div className="mb-2 px-1">
+                  <CompareModelSelector selected={compareModels} onChange={setCompareModels} />
+                </div>
+              )}
+
+              {/* Innovation toolbar */}
+              <div className="flex items-center gap-1.5 mb-1.5 px-1">
+                <CompareToggle enabled={compareMode} onToggle={() => setCompareMode(!compareMode)} />
+                <button
+                  onClick={() => setBranchOpen(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-white/30 hover:text-white/60 hover:bg-white/[0.04] border border-transparent transition-all"
+                  title="Conversation tree"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 3v12M18 9v12M6 3l12 6M6 15l12-6"/>
+                  </svg>
+                  Branches
+                </button>
+              </div>
 
               <div className="flex items-end gap-1.5 bg-white/[0.04] border border-white/[0.08] rounded-2xl p-1.5 focus-within:border-white/[0.15] transition-all">
                 {/* + Upload/Agent button */}

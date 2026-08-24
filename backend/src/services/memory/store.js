@@ -1,9 +1,17 @@
 import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import crypto from 'crypto'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DATA_DIR = path.resolve(__dirname, '../../../../data')
+
+function randomId() {
+  return crypto.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+}
 
 class JsonCollection {
   constructor(name) {
@@ -77,7 +85,7 @@ class JsonCollection {
 
   async insertOne(doc) {
     const data = await this._load()
-    const newDoc = { _id: crypto.randomUUID(), ...doc, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+    const newDoc = { _id: randomId(), ...doc, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
     data.push(newDoc)
     this.cache = data
     await this._save()
@@ -90,7 +98,7 @@ class JsonCollection {
     if (idx === -1) {
       if (options.upsert) {
         const newDoc = {
-          _id: crypto.randomUUID(),
+          _id: randomId(),
           ...Object.fromEntries(Object.entries(filter).filter(([k]) => !k.startsWith('$'))),
           ...(update.$set || {}),
           ...(update.$setOnInsert || {}),
