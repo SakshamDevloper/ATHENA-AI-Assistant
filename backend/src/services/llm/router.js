@@ -25,6 +25,7 @@ function makeProvider(clientClass, apiKey, baseURL, model, supportsTools = true)
 }
 
 let _providers = null
+const failureTracker = {}
 
 async function getProviders() {
   if (_providers) return _providers
@@ -43,44 +44,45 @@ async function getProviders() {
   return _providers
 }
 
-async function getDefaultProvider() {
-  const providers = await getProviders()
-  const entry = Object.values(providers).find(p => p !== null)
-  return entry || null
+function trackFailure(modelId, errorType, errorMessage) {
+  if (!failureTracker[modelId]) failureTracker[modelId] = {}
+  failureTracker[modelId][errorType] = (failureTracker[modelId][errorType] || 0) + 1
+
+  // Circuit breaker: disable model after too many failures
+  const failures = Object.values(failureTracker[modelId]).reduce((a, b) => a + b, 0)
+  if (failures >= 5) {
+    console.warn(`Circuit breaker: ${modelId} disabled after ${failures} failures`)
+    return true
+  }
+  return false
 }
 
-export async function getProvider(modelId) {
-  const providers = await getProviders()
-  return providers[modelId] || await getDefaultProvider()
+function resetFailureTracker(modelId) {
+  if (failureTracker[modelId]) {
+    failureTracker[modelId] = {}
+  }
 }
 
-export function getAvailableModels() {
-  return Object.entries(_providers || {})
-    .filter(([, p]) => p !== null)
-    .map(([id, config]) => ({ id, model: config.model, supportsTools: config.supportsTools }))
-}
-
-export async function initModels() {
-  await getProviders()
-}
-
-async function tryFallbackProviders(modelId, messages, tools, onToken, onToolCall) {
+async function tryFallbackProviders(modelId, messages, tools, onToken, onToolCall, maxRetries = 2) {
   const providers = _providers || {}
   const fallbackOrder = Object.keys(providers)
     .filter(id => id !== modelId && providers[id] !== null)
 
-  for (const fallbackId of fallbackOrder) {
-    console.warn(`Attempting fallback to ${fallbackId}...`)
-    try {
-      return await streamResponse(fallbackId, messages, tools, onToken, onToolCall)
-    } catch (fallbackErr) {
-      console.warn(`Fallback ${fallbackId} also failed:`, fallbackErr.message)
+  for (let retry = 0; retry <= maxRetries; retry++) {
+    for (const fallbackId of fallbackOrder) {
+      console.warn(`Attempting fallback to ${fallbackId} (attempt ${retry + 1})...`)
+      try {
+        return await streamResponse(fallbackId, messages, tools, onToken, onToolCall, true)
+      } catch (fallbackErr) {
+        console.warn(`Fallback ${fallbackId} also failed:`, fallbackErr.message)
+        trackFailure(fallbackId, 'fallback', fallbackErr.message)
+      }
     }
   }
   throw new Error(`All models exhausted. Please check your API keys and quota.`)
 }
 
-export async function streamResponse(modelId, messages, tools, onToken, onToolCall, retriedWithoutTools = false) {
+export async function streamResponse(modelId, messages, tools, onToken, onToolCall, retriedWithoutTools = false, correctionDepth = 0) {
   const provider = await getProvider(modelId)
 
   if (!provider || !provider.client) {
@@ -106,16 +108,19 @@ export async function streamResponse(modelId, messages, tools, onToken, onToolCa
     stream = await provider.client.chat.completions.create(requestOptions)
   } catch (err) {
     const msg = err.message || ''
+    const isCircuitOpen = trackFailure(modelId, 'primary', msg)
+
     if (msg.includes('quota') || msg.includes('429') || msg.includes('insufficient_quota')) {
       console.warn(`Quota exceeded for ${modelId}, trying fallback providers...`)
-      const result = await tryFallbackProviders(modelId, messages, tools, onToken, onToolCall)
-      return result
+      return await tryFallbackProviders(modelId, messages, tools, onToken, onToolCall)
     }
-    if (!retriedWithoutTools && tools && tools.length > 0 && (msg.includes('tools') || msg.includes('function') || msg.includes('type'))) {
-      console.warn(`Tools rejected by ${modelId}, retrying without tools:`, msg)
-      delete requestOptions.tools
-      delete requestOptions.tool_choice
-      stream = await provider.client.chat.completions.create(requestOptions)
+
+    if (!retriedWithoutTools && tools && tools.length > 0 && (msg.includes('tools') || msg.includes('function') || msg.includes('type')) && correctionDepth < 2) {
+      console.warn(`Tools rejected by ${modelId}, retrying without tools (depth ${correctionDepth + 1}):`, msg)
+      const newRequestOptions = { ...requestOptions }
+      delete newRequestOptions.tools
+      delete newRequestOptions.tool_choice
+      stream = await provider.client.chat.completions.create(newRequestOptions)
     } else {
       const result = await tryFallbackProviders(modelId, messages, tools, onToken, onToolCall)
       return result
@@ -165,6 +170,9 @@ export async function streamResponse(modelId, messages, tools, onToken, onToolCa
     }
   }
 
+  // Success - reset failure tracker for this model
+  resetFailureTracker(modelId)
+
   return { fullContent, toolCalls }
 }
 
@@ -186,6 +194,31 @@ export async function generateResponse(modelId, messages, tools) {
     requestOptions.tool_choice = 'auto'
   }
 
-  const response = await provider.client.chat.completions.create(requestOptions)
-  return response.choices[0].message
+  try {
+    const response = await provider.client.chat.completions.create(requestOptions)
+    return response.choices[0].message
+  } catch (error) {
+    // Self-correction: try alternative model on failure
+    console.error(`Primary model ${modelId} failed, attempting correction:`, error.message)
+    const availableModels = getAvailableModels()
+    const alternatives = availableModels.filter(m => m.id !== modelId && m.supportsTools)
+
+    if (alternatives.length > 0) {
+      const altModel = alternatives[0].id
+      console.warn(`Switching to alternative model: ${altModel}`)
+      return await generateResponse(altModel, messages, tools)
+    }
+
+    throw error
+  }
+}
+
+export function getAvailableModels() {
+  return Object.entries(_providers || {})
+    .filter(([, p]) => p !== null)
+    .map(([id, config]) => ({ id, model: config.model, supportsTools: config.supportsTools, failures: Object.values(failureTracker[id] || {}).reduce((a, b) => a + b, 0) }))
+}
+
+export async function initModels() {
+  await getProviders()
 }
