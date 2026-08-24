@@ -11,6 +11,8 @@ import { connectMongo, closeMongo } from './src/services/memory/mongo.js'
 import { connectRedis, closeRedis } from './src/services/memory/redis.js'
 import { streamResponse, initModels } from './src/services/llm/router.js'
 import { toolDefinitions, executeTool } from './src/services/tools/index.js'
+import { cosineSimilarity, generateEmbeddingOpenAI, findSimilarMemories } from './src/utils/vectorStore.js'
+
 import authRoutes from './src/routes/auth.js'
 import memoryRoutes from './src/routes/memory.js'
 import compareRoutes from './src/routes/compare.js'
@@ -84,6 +86,9 @@ app.get('/api/tools', (req, res) => {
   res.json(toolDefinitions)
 })
 
+// In-memory storage for vector memories (fallback when Qdrant not available)
+const vectorMemories = []
+
 app.post('/api/chat', async (req, res) => {
   const { content, model, history } = req.body
 
@@ -92,13 +97,29 @@ app.post('/api/chat', async (req, res) => {
   }
 
   try {
+    // RAG: Search vector memory for relevant context
+    let relevantMemories = []
+    if (vectorMemories.length > 0) {
+      const queryEmbedding = generateEmbeddingOpenAI(content)
+      relevantMemories = findSimilarMemories(vectorMemories, content, 3)
+    }
+
+    const memoryContext = relevantMemories.length > 0
+      ? relevantMemories
+          .map(m => m.payload?.text || JSON.stringify(m.payload))
+          .filter(Boolean)
+          .join('\n---\n')
+      : ''
+
     const messages = [
       {
         role: 'system',
         content: `You are NexusAI, a helpful AI assistant with access to tools.
 Current date: ${new Date().toISOString().split('T')[0]}.
 Use tools when you need real-time information, weather, or factual lookups.
-Be concise but thorough. Format code blocks with language tags.`,
+Be concise but thorough. Format code blocks with language tags.
+${memoryContext ? 'Relevant conversation context from memory: ' + memoryContext + '\n---\n' : ''}
+Remember to reference past conversations when relevant.`,
       },
       ...(history || []).map(m => ({ role: m.role, content: m.content })),
       { role: 'user', content },
@@ -140,6 +161,19 @@ Be concise but thorough. Format code blocks with language tags.`,
       iteration++
     }
 
+    // Store this conversation in vector memory for future context
+    vectorMemories.push({
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+      payload: { text: content },
+      embedding: generateEmbeddingOpenAI(content),
+      createdAt: new Date().toISOString(),
+    })
+
+    // Keep only last 100 memories to prevent memory bloat
+    if (vectorMemories.length > 100) {
+      vectorMemories.splice(0, vectorMemories.length - 100)
+    }
+
     res.json({ content: fullContent, fullContent, toolCalls: allToolCalls })
   } catch (error) {
     console.error('Chat error:', error)
@@ -158,7 +192,7 @@ if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => {
     res.sendFile(path.join(frontendDist, 'index.html'))
   })
-}
+})
 
 io.on('connection', (socket) => {
   console.log(`Client connected: ${socket.id}`)
@@ -167,13 +201,29 @@ io.on('connection', (socket) => {
     const { messageId, content, model, history } = data
 
     try {
+      // RAG: Search vector memory for relevant context
+      let relevantMemories = []
+      if (vectorMemories.length > 0) {
+        const queryEmbedding = generateEmbeddingOpenAI(content)
+        relevantMemories = findSimilarMemories(vectorMemories, content, 3)
+      }
+
+      const memoryContext = relevantMemories.length > 0
+        ? relevantMemories
+            .map(m => m.payload?.text || JSON.stringify(m.payload))
+            .filter(Boolean)
+            .join('\n---\n')
+        : ''
+
       const messages = [
         {
           role: 'system',
-          content: `You are NexusAI, a helpful AI assistant with access to tools. 
+          content: `You are NexusAI, a helpful AI assistant with access to tools.
 Current date: ${new Date().toISOString().split('T')[0]}.
 Use tools when you need real-time information, weather, or factual lookups.
-Be concise but thorough. Format code blocks with language tags.`,
+Be concise but thorough. Format code blocks with language tags.
+${memoryContext ? 'Relevant conversation context from memory: ' + memoryContext + '\n---\n' : ''}
+Remember to reference past conversations when relevant.`,
         },
         ...(history || []).map(m => ({ role: m.role, content: m.content })),
         { role: 'user', content },
@@ -182,7 +232,6 @@ Be concise but thorough. Format code blocks with language tags.`,
       let currentMessages = [...messages]
       let maxIterations = 3
       let iteration = 0
-
       let fullContent = ''
 
       while (iteration < maxIterations) {
